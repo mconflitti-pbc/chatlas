@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import json
 import os
 from typing import Optional
@@ -73,6 +74,7 @@ def ChatAuto(
     ```python
     import os
     from chatlas import ChatAuto
+from inspect import signature
 
     chat = ChatAuto()
     chat.chat("What is the capital of France?")
@@ -131,4 +133,9 @@ def ChatAuto(
     if env_kwargs := os.environ.get("CHATLAS_CHAT_ARGS"):
         kwargs |= json.loads(env_kwargs)
 
-    return _provider_chat_model_map[provider](**kwargs)
+    # Filter out fields from kwargs are not part of the chat_fun signature
+    chat_fun = _provider_chat_model_map[provider]
+    chat_fun_params = inspect.signature(chat_fun).parameters
+    kwargs = {param: value for param, value in kwargs.items() if param in chat_fun_params}
+
+    return chat_fun(**kwargs)
