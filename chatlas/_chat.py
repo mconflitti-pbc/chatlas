@@ -398,6 +398,7 @@ class Chat(Generic[SubmitInputArgsT, CompletionT]):
         launch_browser: bool = True,
         bg_thread: Optional[bool] = None,
         echo: Optional[Literal["text", "all", "none"]] = None,
+        session_callback: Optional[Callable[..., None]] = None,
         kwargs: Optional[SubmitInputArgsT] = None,
     ):
         """
@@ -434,7 +435,10 @@ class Chat(Generic[SubmitInputArgsT, CompletionT]):
             fillable_mobile=True,
         )
 
-        def server(input):  # noqa: A002
+        def server(input, output, session):  # noqa: A002
+            if session_callback:
+                session_callback(session)
+
             chat = ui.Chat(
                 "chat",
                 messages=[
